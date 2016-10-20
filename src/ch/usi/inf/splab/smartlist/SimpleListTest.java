@@ -61,6 +61,120 @@ public class SimpleListTest {
 	    }
 	}
 	
+	public void growingAndShrinkingList( int nOperations ){
+		Random opSelector = new Random( 12345678 );
+		Random indexSelector = new Random( 12345678 );
+		
+		double getProb = 0.25;
+		double addProb = 0.6;
+		//double remProb = 1 - addProb;
+		
+		int i = 0;
+		for( ; i < nOperations/8 ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( indexSelector.nextInt( listUnderTest.size() ) );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( indexSelector.nextInt( listUnderTest.size() ) );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+		
+		addProb = 0.5;
+		for( ; i < 7*nOperations/8 ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( indexSelector.nextInt( listUnderTest.size() ) );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( indexSelector.nextInt( listUnderTest.size() ) );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+		
+		addProb = 0.3;
+		for( ; i < nOperations ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( indexSelector.nextInt( listUnderTest.size() ) );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( indexSelector.nextInt( listUnderTest.size() ) );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+	}
+	
+	public void growingAndShrinkingQueue( int nOperations ){
+		Random opSelector = new Random( 12345678 );
+		Random indexSelector = new Random( 12345678 );
+		
+		double getProb = 0.25;
+		double addProb = 0.6;
+		//double remProb = 1 - addProb;
+		
+		int i = 0;
+		for( ; i < nOperations/8 ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( 0 );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( 0 );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+		
+		addProb = 0.5;
+		for( ; i < 7*nOperations/8 ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( 0 );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( 0 );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+		
+		addProb = 0.3;
+		for( ; i < nOperations ; i++ ){
+			double num = opSelector.nextDouble();
+			if( num < getProb && listUnderTest.size() > 0 ){
+				listUnderTest.get( 0 );
+			}else{
+				num = opSelector.nextDouble();
+				if( num < addProb ){
+					listUnderTest.add( 10 );
+				}else if( listUnderTest.size() > 0 ){
+					listUnderTest.remove( 0 );
+				}
+			}
+			listUnderTestSizes.add( i, listUnderTest.size() );
+		}
+	}
+	
 	public void executeTest01( int nOperations ){
 		System.out.println( "  Starting test 01: randomInsertGetRemove for " + nOperations + " operations." );
 		listUnderTest.clear();
@@ -85,25 +199,48 @@ public class SimpleListTest {
 		executionTimeMs = (endTime - startTime) / 1000000;
 	}
 	
+	public void executeTest03( int nOperations ){
+		System.out.println( "  Starting test 03: growingAndShrinkingList for " + nOperations + " operations." );
+		listUnderTest.clear();
+		listUnderTestSizes.clear();
+		listUnderTestSizes.ensureCapacity( nOperations );
+		
+		long startTime = System.nanoTime();
+		growingAndShrinkingList( nOperations );
+		long endTime = System.nanoTime();
+		executionTimeMs = (endTime - startTime) / 1000000;
+	}
+	
+	public void executeTest04( int nOperations ){
+		System.out.println( "  Starting test 04: growingAndShrinkingQueue for " + nOperations + " operations." );
+		listUnderTest.clear();
+		listUnderTestSizes.clear();
+		listUnderTestSizes.ensureCapacity( nOperations );
+		
+		long startTime = System.nanoTime();
+		growingAndShrinkingQueue( nOperations );
+		long endTime = System.nanoTime();
+		executionTimeMs = (endTime - startTime) / 1000000;
+	}
+	
 
 	public static void main( String[] args ) throws IOException{
 		SmartList<Integer> l = new SmartList<Integer>();
 		SimpleListTest test = new SimpleListTest( l );
 		System.out.println( "Starting test..." );
-		test.executeTest01( 10000000 );
+		test.executeTest04( 10000000 );
 		System.out.println( "...test finished in " + test.executionTimeMs + " milliseconds." );
 		
 		System.out.print( "Dumping list sizes..." );
 		test.dumpSizes( "sizes.txt" );
 		System.out.println( "done." );
 		
-		System.out.print( "Dumping list operations..." );
-		l.dumpStatsToFile( "operations.txt" );
-		System.out.println( "done." );
+		//System.out.print( "Dumping list operations..." );
+		//l.dumpStatsToFile( "operations.txt" );
+		//System.out.println( "done." );
 	}
 	
 	/*
-	 Terminal type set to 'wxt'
 	gnuplot> set term wxt enhanced
 	gnuplot> set title 'List size'
 	gnuplot> plot [:] [:] '~/eclipsews/SmartList/sizes.txt' every 1000 title 'list size' with lines

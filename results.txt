@@ -1,8 +1,8 @@
 Test results:
 -------------
 
-  ms       | randomOps | growingOnly |
---------------------------------------
-ArrayList  | 2865      | 3872        |
-LinkedList | 6342      | >2mins      |
-SmartList  | 2741      | 6080        |
+  ms       | randomOps | growingOnly | growingAndShrinking | growingAndShrinkingQueue |
+---------------------------------------------------------------------------------------
+ArrayList  | 2865      | 3872        | 50648               | 102366                   |
+LinkedList | 6342      | >2mins      | >2mins              | 3470                     |
+SmartList  | 2741      | 6080        | 52953               | 104231                   |
