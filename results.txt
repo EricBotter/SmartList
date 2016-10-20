@@ -1,0 +1,8 @@
+Test results:
+-------------
+
+  ms       | randomOps | growingOnly |
+--------------------------------------
+ArrayList  | 2865      | 3872        |
+LinkedList | 6342      | >2mins      |
+SmartList  | 2741      | 6080        |

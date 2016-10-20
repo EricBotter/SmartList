@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -86,13 +87,18 @@ public class SimpleListTest {
 	
 
 	public static void main( String[] args ) throws IOException{
-		ArrayList<Integer> l = new ArrayList<Integer>();
+		SmartList<Integer> l = new SmartList<Integer>();
 		SimpleListTest test = new SimpleListTest( l );
 		System.out.println( "Starting test..." );
-		test.executeTest02( 10000000 );
+		test.executeTest01( 10000000 );
 		System.out.println( "...test finished in " + test.executionTimeMs + " milliseconds." );
+		
 		System.out.print( "Dumping list sizes..." );
 		test.dumpSizes( "sizes.txt" );
+		System.out.println( "done." );
+		
+		System.out.print( "Dumping list operations..." );
+		l.dumpStatsToFile( "operations.txt" );
 		System.out.println( "done." );
 	}
 	
