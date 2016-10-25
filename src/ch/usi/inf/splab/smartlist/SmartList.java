@@ -64,7 +64,7 @@ public class SmartList<E> extends ArrayList<E> {
 //        callCounter.put(method, callCounter.getOrDefault(method, 0) + 1);
 
         try {
-            FileOutputStream fos = new FileOutputStream(filename);
+            FileOutputStream fos = new FileOutputStream(filename, true);
             fos.write(('\t' + method + '(' + String.join(", ", arguments) + ')').getBytes());
             fos.close();
         } catch (IOException e) {
@@ -97,7 +97,7 @@ public class SmartList<E> extends ArrayList<E> {
             }
         }
 
-        FileOutputStream fos = new FileOutputStream(filename);
+        FileOutputStream fos = new FileOutputStream(filename, true);
         fos.write(sb.toString().getBytes());
         fos.close();
     }
