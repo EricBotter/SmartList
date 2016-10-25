@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Class-Path: lib/asm-all-5.0.3.jar
+Premain-Class: ch.usi.inf.splab.agent.Agent
