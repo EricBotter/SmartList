@@ -10,37 +10,70 @@ import java.util.stream.Stream;
 
 public class SmartList<E> extends ArrayList<E> {
 
-    private final String FILENAME = "./log.txt";
+    private static int globalCounter = 0;
 
-    private HashMap<String, Integer> callCounter;
+    private String filename;
+
+//    private HashMap<String, Integer> callCounter;
     private HashMap<Integer, Integer> insertCounter;
     private HashMap<Integer, Integer> removeCounter;
     private HashMap<Integer, Integer> getCounter;
     private HashMap<Integer, Integer> setCounter;
 
-    public SmartList() {
-        super();
-        callCounter = new HashMap<>();
+    @Override
+    public void finalize() throws Throwable { // Nice Java coding skills
+        dumpStatsToFile();
+        super.finalize();
+    }
+
+    private void customInit() {
+        filename = "./log_" + (globalCounter++) + ".txt";
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            fos.write("CALLS\n".getBytes());
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        callCounter = new HashMap<>();
         insertCounter = new HashMap<>();
         removeCounter = new HashMap<>();
         getCounter = new HashMap<>();
         setCounter = new HashMap<>();
     }
 
-    public void dumpStatsToFile() throws IOException {
-        dumpStatsToFile(FILENAME);
+    public SmartList() {
+        super();
+        customInit();
+        traceCall("<init>", new String[]{});
     }
 
-    public void dumpStatsToFile(String filename) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CALLS\n");
-        for (String method : callCounter.keySet()) {
-            sb.append('\t');
-            sb.append(method);
-            sb.append(": ");
-            sb.append(callCounter.get(method));
-            sb.append('\n');
+    public SmartList(int capacity) {
+        super(capacity);
+        customInit();
+        traceCall("<init>", new String[]{Integer.toString(capacity)});
+    }
+
+    public SmartList(Collection<? extends E> c) {
+        super(c);
+        customInit();
+        traceCall("<init>", new String[]{c.toString()});
+    }
+
+    private void traceCall(String method, String[] arguments) {
+//        callCounter.put(method, callCounter.getOrDefault(method, 0) + 1);
+
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            fos.write(('\t' + method + '(' + String.join(", ", arguments) + ')').getBytes());
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void dumpStatsToFile() throws IOException {
+        StringBuilder sb = new StringBuilder();
         sb.append("\nSTATS\n");
         List<Map<Integer, Integer>> list = Arrays.asList(getCounter, insertCounter, removeCounter);
         for (int i = 0; i < 3; i++) {
@@ -71,19 +104,19 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public int size() {
-        callCounter.put("size", callCounter.getOrDefault("size", 0) + 1);
+        traceCall("size", new String[]{});
         return super.size();
     }
 
     @Override
     public boolean isEmpty() {
-        callCounter.put("isEmpty", callCounter.getOrDefault("isEmpty", 0) + 1);
+        traceCall("isEmpty", new String[]{});
         return super.isEmpty();
     }
 
     @Override
     public boolean contains(Object o) {
-        callCounter.put("contains", callCounter.getOrDefault("contains", 0) + 1);
+        traceCall("contains", new String[]{o.toString()});
         int out = super.indexOf(o);
         for (int i = 0; i <= out; i++) {
             getCounter.put(i, getCounter.getOrDefault(i, 0) + 1);
@@ -93,53 +126,53 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public Iterator<E> iterator() {
-        callCounter.put("iterator", callCounter.getOrDefault("iterator", 0) + 1);
+        traceCall("iterator", new String[]{});
         return super.iterator();
     }
 
     @Override
     public void forEach(Consumer<? super E> action) {
-        callCounter.put("forEach", callCounter.getOrDefault("forEach", 0) + 1);
+        traceCall("forEach", new String[]{action.toString()});
         // too expensive to trace these gets
         super.forEach(action);
     }
 
     @Override
     public Object[] toArray() {
-        callCounter.put("toArray()", callCounter.getOrDefault("toArray()", 0) + 1);
+        traceCall("toArray", new String[]{});
         return super.toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        callCounter.put("toArray(T[])", callCounter.getOrDefault("toArray(T[])", 0) + 1);
+        traceCall("toArray", new String[]{a.toString()});
         return super.toArray(a);
     }
 
     @Override
     public boolean add(E e) {
-        callCounter.put("add", callCounter.getOrDefault("add", 0) + 1);
+        traceCall("add", new String[]{e.toString()});
         insertCounter.put(super.size(), insertCounter.getOrDefault(super.size(), 0) + 1);
         return super.add(e);
     }
 
     @Override
     public boolean remove(Object o) {
-        callCounter.put("remove", callCounter.getOrDefault("remove", 0) + 1);
+        traceCall("remove", new String[]{o.toString()});
         removeCounter.put(super.size(), removeCounter.getOrDefault(super.size(), 0) + 1);
         return super.remove(o);
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        callCounter.put("containsAll", callCounter.getOrDefault("containsAll", 0) + 1);
+        traceCall("containsAll", new String[]{c.toString()});
         // too expensive to trace these gets
         return super.containsAll(c);
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        callCounter.put("addAll(Collection)", callCounter.getOrDefault("addAll(Collection)", 0) + 1);
+        traceCall("addAll(Collection)", new String[]{c.toString()});
         for (int i = super.size(); i < super.size() + c.size(); i++) { // FIXME - is this really a bunch of adds?
             insertCounter.put(i, insertCounter.getOrDefault(i, 0) + 1);
         }
@@ -148,7 +181,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
-        callCounter.put("addAll(int, Collection)", callCounter.getOrDefault("addAll(int, Collection)", 0) + 1);
+        traceCall("addAll", new String[]{Integer.toString(index), c.toString()});
         for (int i = index; i < index + c.size(); i++) { // FIXME - is this really a bunch of adds?
             insertCounter.put(i, insertCounter.getOrDefault(i, 0) + 1);
         }
@@ -157,73 +190,73 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        callCounter.put("removeAll(Collection)", callCounter.getOrDefault("removeAll(Collection)", 0) + 1);
+        traceCall("removeAll", new String[]{c.toString()});
         // too expensive to trace these removes
         return super.removeAll(c);
     }
 
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
-        callCounter.put("removeIf", callCounter.getOrDefault("removeIf", 0) + 1);
+        traceCall("removeIf", new String[]{filter.toString()});
         // too expensive to trace these removes
         return super.removeIf(filter);
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        callCounter.put("retainAll", callCounter.getOrDefault("retainAll", 0) + 1);
+        traceCall("retainAll", new String[]{c.toString()});
         return super.retainAll(c);
     }
 
     @Override
     public void replaceAll(UnaryOperator<E> operator) {
-        callCounter.put("replaceAll", callCounter.getOrDefault("replaceAll", 0) + 1);
+        traceCall("replaceAll", new String[]{operator.toString()});
         super.replaceAll(operator);
     }
 
     @Override
     public void sort(Comparator<? super E> c) {
-        callCounter.put("sort", callCounter.getOrDefault("sort", 0) + 1);
+        traceCall("sort", new String[]{c.toString()});
         super.sort(c);
     }
 
     @Override
     public void clear() {
-        callCounter.put("clear", callCounter.getOrDefault("clear", 0) + 1);
+        traceCall("clear", new String[]{});
         super.clear();
     }
 
     @Override
     public E get(int index) {
-        callCounter.put("get", callCounter.getOrDefault("get", 0) + 1);
+        traceCall("get", new String[]{Integer.toString(index)});
         getCounter.put(index, getCounter.getOrDefault(index, 0) + 1);
         return super.get(index);
     }
 
     @Override
     public E set(int index, E element) {
-        callCounter.put("set", callCounter.getOrDefault("set", 0) + 1);
+        traceCall("set", new String[]{Integer.toString(index), element.toString()});
         setCounter.put(index, setCounter.getOrDefault(index, 0) + 1);
         return super.set(index, element);
     }
 
     @Override
     public void add(int index, E element) {
-        callCounter.put("add", callCounter.getOrDefault("add", 0) + 1);
+        traceCall("add", new String[]{Integer.toString(index), element.toString()});
         insertCounter.put(index, insertCounter.getOrDefault(index, 0) + 1);
         super.add(index, element);
     }
 
     @Override
     public E remove(int index) {
-        callCounter.put("remove", callCounter.getOrDefault("remove", 0) + 1);
+        traceCall("remove", new String[]{Integer.toString(index)});
         removeCounter.put(index, removeCounter.getOrDefault(index, 0) + 1);
         return super.remove(index);
     }
 
     @Override
     public int indexOf(Object o) {
-        callCounter.put("indexOf", callCounter.getOrDefault("indexOf", 0) + 1);
+        traceCall("indexOf", new String[]{o.toString()});
         int out = super.indexOf(o);
         for (int i = 0; i <= out; i++) {
             getCounter.put(i, getCounter.getOrDefault(i, 0) + 1);
@@ -233,7 +266,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public int lastIndexOf(Object o) {
-        callCounter.put("lastIndexOf", callCounter.getOrDefault("lastIndexOf", 0) + 1);
+        traceCall("lastIndexOf", new String[]{o.toString()});
         int out = super.lastIndexOf(o);
         for (int i = out; i < super.size(); i++) {
             getCounter.put(i, getCounter.getOrDefault(i, 0) + 1);
@@ -243,37 +276,37 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public ListIterator<E> listIterator() {
-        callCounter.put("listIterator()", callCounter.getOrDefault("listIterator()", 0) + 1);
+        traceCall("listIterator()", new String[]{});
         return super.listIterator();
     }
 
     @Override
     public ListIterator<E> listIterator(int index) {
-        callCounter.put("listIterator(int)", callCounter.getOrDefault("listIterator(int)", 0) + 1);
+        traceCall("listIterator(int)", new String[]{Integer.toString(index)});
         return super.listIterator(index);
     }
 
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
-        callCounter.put("subList", callCounter.getOrDefault("subList", 0) + 1);
+        traceCall("subList", new String[]{Integer.toString(fromIndex), Integer.toString(toIndex)});
         return super.subList(fromIndex, toIndex);
     }
 
     @Override
     public Spliterator<E> spliterator() {
-        callCounter.put("spliterator", callCounter.getOrDefault("spliterator", 0) + 1);
+        traceCall("spliterator", new String[]{});
         return super.spliterator();
     }
 
     @Override
     public Stream<E> stream() {
-        callCounter.put("stream", callCounter.getOrDefault("stream", 0) + 1);
+        traceCall("stream", new String[]{});
         return super.stream();
     }
 
     @Override
     public Stream<E> parallelStream() {
-        callCounter.put("parallelStream", callCounter.getOrDefault("parallelStream", 0) + 1);
+        traceCall("parallelStream", new String[]{});
         return super.parallelStream();
     }
 }
