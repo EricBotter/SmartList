@@ -83,7 +83,7 @@ public class SmartList<E> extends ArrayList<E> {
 
         try {
             FileOutputStream fos = new FileOutputStream(filename, true);
-            fos.write(('\t' + method + '(' + stringJoin(", ", arguments) + ')').getBytes());
+            fos.write(('\t' + method + '(' + stringJoin(", ", arguments) + ")\n").getBytes());
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
