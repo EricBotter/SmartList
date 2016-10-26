@@ -67,6 +67,8 @@ public class SmartList<E> extends ArrayList<E> {
     }
 
     private <T> String stringJoin(String delimiter, T[] array) {
+        if (array.length == 0)
+            return "";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < array.length - 1; i++) {
             sb.append(array[i].toString());
