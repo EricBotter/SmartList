@@ -14,38 +14,14 @@ public class SmartList<E> extends ArrayList<E> {
 
     private String filename;
 
-//    private HashMap<String, Integer> callCounter;
-    private HashMap<Integer, Integer> insertCounter;
-    private HashMap<Integer, Integer> removeCounter;
-    private HashMap<Integer, Integer> getCounter;
-    private HashMap<Integer, Integer> setCounter;
-
-    @Override
-    public void finalize() throws Throwable { // Nice Java coding skills
-        dumpStatsToFile();
-        super.finalize();
-    }
-
     private void customInit() {
-        filename = "./log_" + (globalCounter++) + ".txt";
-        try {
-            FileOutputStream fos = new FileOutputStream(filename);
-            fos.write("CALLS\n".getBytes());
-            fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-//        callCounter = new HashMap<>();
-        insertCounter = new HashMap<>();
-        removeCounter = new HashMap<>();
-        getCounter = new HashMap<>();
-        setCounter = new HashMap<>();
+        filename = "./log_" + String.format("%04d", globalCounter++) + ".txt";
     }
 
     public SmartList() {
         super();
         customInit();
-        traceCall("<init>", new String[]{});
+        traceCall("<init>", null);
     }
 
     public SmartList(int capacity) {
@@ -60,11 +36,11 @@ public class SmartList<E> extends ArrayList<E> {
         traceCall("<init>", new String[]{c == null ? "null" : c.toString()});
     }
 
-    private <K, V> V mapGetOrDefault(Map<K, V> map, K key, V value) {
-        if (map.containsKey(key))
-            return map.get(key);
-        return value;
-    }
+//    private <K, V> V mapGetOrDefault(Map<K, V> map, K key, V value) {
+//        if (map.containsKey(key))
+//            return map.get(key);
+//        return value;
+//    }
 
     private <T> String stringJoin(String delimiter, T[] array) {
         if (array.length == 0)
@@ -79,72 +55,63 @@ public class SmartList<E> extends ArrayList<E> {
     }
 
     private void traceCall(String method, String[] arguments) {
+        traceCall(method, arguments, null);
+    }
+
+    private void traceCall(String method, String[] arguments, Map<String, String> extra) {
 //        callCounter.put(method, mapGetOrDefault(callCounter, method, 0) + 1);
 
         try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Size: ");
+            sb.append(super.size());
+            sb.append('\t');
+            if (extra != null) {
+                for (Map.Entry<String, String> entry : extra.entrySet()) {
+                    sb.append(entry.getKey());
+                    sb.append(": ");
+                    sb.append(entry.getValue());
+                    sb.append('\t');
+                }
+            }
+
+            sb.append("Method: ");
+            sb.append(method);
+            sb.append('(');
+            if (arguments != null) {
+                sb.append(stringJoin(", ", arguments));
+            }
+            sb.append(")\n");
+
             FileOutputStream fos = new FileOutputStream(filename, true);
-            fos.write(('\t' + method + '(' + stringJoin(", ", arguments) + ")\n").getBytes());
+            fos.write(sb.toString().getBytes());
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void dumpStatsToFile() throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\nSTATS\n");
-        List<HashMap<Integer, Integer>> list = Arrays.asList(getCounter, insertCounter, removeCounter);
-        for (int i = 0; i < 3; i++) {
-            Map<Integer, Integer> m = list.get(i);
-            switch (i) {
-                case 0:
-                    sb.append("\tGET\n");
-                    break;
-                case 1:
-                    sb.append("\tINSERT\n");
-                    break;
-                case 2:
-                    sb.append("\tREMOVE\n");
-            }
-            for (int index : m.keySet()) {
-                sb.append("\t\t");
-                sb.append(index);
-                sb.append(": ");
-                sb.append(m.get(index));
-                sb.append('\n');
-            }
-        }
-
-        FileOutputStream fos = new FileOutputStream(filename, true);
-        fos.write(sb.toString().getBytes());
-        fos.close();
-    }
-
     @Override
     public int size() {
-        traceCall("size", new String[]{});
+        traceCall("size", null);
         return super.size();
     }
 
     @Override
     public boolean isEmpty() {
-        traceCall("isEmpty", new String[]{});
+        traceCall("isEmpty", null);
         return super.isEmpty();
     }
 
     @Override
     public boolean contains(Object o) {
         traceCall("contains", new String[]{o == null ? "null" : o.toString()});
-        int out = super.indexOf(o);
-        for (int i = 0; i <= out; i++) {
-            getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);
-        }
-        return out >= 0;
+        return super.contains(o);
     }
 
     @Override
     public Iterator<E> iterator() {
-        traceCall("iterator", new String[]{});
+        traceCall("iterator", null);
         return super.iterator();
     }
 
@@ -157,7 +124,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public Object[] toArray() {
-        traceCall("toArray", new String[]{});
+        traceCall("toArray", null);
         return super.toArray();
     }
 
@@ -169,15 +136,17 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean add(E e) {
-        traceCall("add", new String[]{e == null ? "null" : e.toString()});
-        insertCounter.put(super.size(), mapGetOrDefault(insertCounter, super.size(), 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Insert", Integer.toString(super.size()));
+        traceCall("add", new String[]{e == null ? "null" : e.toString()}, extra);
         return super.add(e);
     }
 
     @Override
     public boolean remove(Object o) {
-        traceCall("remove", new String[]{o == null ? "null" : o.toString()});
-        removeCounter.put(super.size(), mapGetOrDefault(removeCounter, super.size(), 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Remove", Integer.toString(super.indexOf(o)));
+        traceCall("remove", new String[]{o == null ? "null" : o.toString()}, extra);
         return super.remove(o);
     }
 
@@ -191,25 +160,27 @@ public class SmartList<E> extends ArrayList<E> {
     @Override
     public boolean addAll(Collection<? extends E> c) {
         traceCall("addAll(Collection)", new String[]{c == null ? "null" : c.toString()});
-        for (int i = super.size(); i < super.size() + c.size(); i++) { // FIXME - is this really a bunch of adds?
-            insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
-        }
+        // TODO trace these inserts
+        //for (int i = super.size(); i < super.size() + c.size(); i++) { // FIXME - is this really a bunch of adds?
+        //    insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
+        //}
         return super.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         traceCall("addAll", new String[]{Integer.toString(index), c == null ? "null" : c.toString()});
-        for (int i = index; i < index + c.size(); i++) { // FIXME - is this really a bunch of adds?
-            insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
-        }
+        // TODO trace these inserts
+        //for (int i = index; i < index + c.size(); i++) { // FIXME - is this really a bunch of adds?
+        //    insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
+        //}
         return super.addAll(index, c);
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
         traceCall("removeAll", new String[]{c == null ? "null" : c.toString()});
-        // too expensive to trace these removes
+        // FIXME - too expensive to trace these removes
         return super.removeAll(c);
     }
 
@@ -240,61 +211,57 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public void clear() {
-        traceCall("clear", new String[]{});
+        traceCall("clear", null);
         super.clear();
     }
 
     @Override
     public E get(int index) {
-        traceCall("get", new String[]{Integer.toString(index)});
-        getCounter.put(index, mapGetOrDefault(getCounter, index, 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Get", Integer.toString(index));
+        traceCall("get", new String[]{Integer.toString(index)}, extra);
         return super.get(index);
     }
 
     @Override
     public E set(int index, E element) {
-        traceCall("set", new String[]{Integer.toString(index), element == null ? "null" : element.toString()});
-        setCounter.put(index, mapGetOrDefault(setCounter, index, 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Set", Integer.toString(index));
+        traceCall("set", new String[]{Integer.toString(index), element == null ? "null" : element.toString()}, extra);
         return super.set(index, element);
     }
 
     @Override
     public void add(int index, E element) {
-        //traceCall("add", new String[]{Integer.toString(index), element == null ? "null" : element.toString()});
-        //insertCounter.put(index, mapGetOrDefault(insertCounter, index, 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Insert", Integer.toString(index));
+        traceCall("add", new String[]{Integer.toString(index), element == null ? "null" : element.toString()}, extra);
         super.add(index, element);
     }
 
     @Override
     public E remove(int index) {
-        traceCall("remove", new String[]{Integer.toString(index)});
-        removeCounter.put(index, mapGetOrDefault(removeCounter, index, 0) + 1);
+        HashMap<String, String> extra = new HashMap<>();
+        extra.put("Remove", Integer.toString(index));
+        traceCall("remove", new String[]{Integer.toString(index)}, extra);
         return super.remove(index);
     }
 
     @Override
     public int indexOf(Object o) {
         traceCall("indexOf", new String[]{o == null ? "null" : o.toString()});
-        int out = super.indexOf(o);
-        for (int i = 0; i <= out; i++) {
-            getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);
-        }
-        return out;
+        return super.indexOf(o); // TODO - should we trace this?
     }
 
     @Override
     public int lastIndexOf(Object o) {
         traceCall("lastIndexOf", new String[]{o == null ? "null" : o.toString()});
-        int out = super.lastIndexOf(o);
-        for (int i = out; i < super.size(); i++) {
-            getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);
-        }
-        return out;
+        return super.lastIndexOf(o); // TODO - should we trace this?
     }
 
     @Override
     public ListIterator<E> listIterator() {
-        traceCall("listIterator()", new String[]{});
+        traceCall("listIterator()", null);
         return super.listIterator();
     }
 
@@ -312,19 +279,19 @@ public class SmartList<E> extends ArrayList<E> {
 
 //    @Override
 //    public Spliterator<E> spliterator() {
-//        traceCall("spliterator", new String[]{});
+//        traceCall("spliterator", null);
 //        return super.spliterator();
 //    }
 
 //    @Override
 //    public Stream<E> stream() {
-//        traceCall("stream", new String[]{});
+//        traceCall("stream", null);
 //        return super.stream();
 //    }
 
 //    @Override
 //    public Stream<E> parallelStream() {
-//        traceCall("parallelStream", new String[]{});
+//        traceCall("parallelStream", null);
 //        return super.parallelStream();
 //    }
 }
