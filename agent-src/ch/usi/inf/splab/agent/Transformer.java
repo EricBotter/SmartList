@@ -10,7 +10,10 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 
 
 public final class Transformer implements ClassFileTransformer {
@@ -25,7 +28,9 @@ public final class Transformer implements ClassFileTransformer {
 
 		if( className.startsWith("java/") ||
 			className.startsWith("sun/") ||
-			className.startsWith("ch/usi/inf/splab/agent/") ){
+			className.startsWith("ch/usi/inf/splab/agent/") ||
+			className.startsWith("ch/usi/inf/splab/smartlist/SmartList") ||
+			className.startsWith("org/eclipse/core/runtime/adaptor") ){
 			return classfileBuffer;
 		} else {
 			try {
@@ -41,10 +46,11 @@ public final class Transformer implements ClassFileTransformer {
 	private byte[] instrument(byte[] bytes) {
 		ClassReader cr = new ClassReader(bytes);
 		ClassNode cn = new ClassNode();
-		cr.accept(cn, ClassReader.SKIP_FRAMES);
+		cr.accept(cn, 0);
 
 		instrument(cn);
-		final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		
+		final ClassWriter cw = new ClassWriter(0);
 		cn.accept(cw);
 		return cw.toByteArray();
 	}
@@ -56,23 +62,37 @@ public final class Transformer implements ClassFileTransformer {
 		}
 	}
 	
-	private void instrument(MethodNode mn) {
-		for(int i=0; i < mn.instructions.size(); i++){
+	private void instrument( MethodNode mn ){
+		for( int i=0; i < mn.instructions.size(); i++ ){
 			AbstractInsnNode ain = mn.instructions.get(i);
 			switch(ain.getType()){
-			case AbstractInsnNode.INT_INSN:
-				if (ain.getOpcode()==Opcodes.NEWARRAY){
-					/*IntInsnNode iin = (IntInsnNode)ain;
-					InsnList patch = new InsnList();
-					patch.add(new InsnNode(Opcodes.DUP));
-					patch.add(new LdcInsnNode(types[iin.operand]));
-					patch.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-							"ch/usi/inf/sp/dbi/profiler/Profiler",
-							"logNewArray", "(ILjava/lang/String;)V", false));
-					i+=patch.size();
-					mn.instructions.insertBefore(ain, patch);*/
+			case AbstractInsnNode.TYPE_INSN:
+				if( ain.getOpcode() == Opcodes.NEW ){
+					TypeInsnNode tin = (TypeInsnNode)ain;
+					if( tin.desc.equals( "java/util/ArrayList" ) ){
+						InsnList patch = new InsnList();
+						patch.add( new TypeInsnNode( Opcodes.NEW, "ch/usi/inf/splab/smartlist/SmartList" ) );
+						mn.instructions.insertBefore( tin, patch );
+						mn.instructions.remove( tin );
+						System.out.println( "\tSUB: NEW " + tin.desc );
+					}
 				}
-				break;				
+				break;
+				
+			case AbstractInsnNode.METHOD_INSN:
+				if( ain.getOpcode() == Opcodes.INVOKESPECIAL ){
+					MethodInsnNode tin = (MethodInsnNode)ain;
+					if( tin.owner.equals( "java/util/ArrayList" ) &&
+							tin.name.equals( "<init>" ) ){
+						InsnList patch = new InsnList();
+						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, 
+								"ch/usi/inf/splab/smartlist/SmartList", tin.name, tin.desc, false ) );
+						mn.instructions.insertBefore( tin, patch );
+						mn.instructions.remove( tin );
+						System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
+					}
+				}
+				break;
 			}
 		}
 	}

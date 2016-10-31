@@ -57,7 +57,7 @@ public class SmartList<E> extends ArrayList<E> {
     public SmartList(Collection<? extends E> c) {
         super(c);
         customInit();
-        traceCall("<init>", new String[]{c.toString()});
+        traceCall("<init>", new String[]{c == null ? "null" : c.toString()});
     }
 
     private <K, V> V mapGetOrDefault(Map<K, V> map, K key, V value) {
@@ -134,7 +134,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean contains(Object o) {
-        traceCall("contains", new String[]{o.toString()});
+        traceCall("contains", new String[]{o == null ? "null" : o.toString()});
         int out = super.indexOf(o);
         for (int i = 0; i <= out; i++) {
             getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);
@@ -163,34 +163,34 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public <T> T[] toArray(T[] a) {
-        traceCall("toArray", new String[]{a.toString()});
+        traceCall("toArray", new String[]{a == null ? "null" : a.toString()});
         return super.toArray(a);
     }
 
     @Override
     public boolean add(E e) {
-        traceCall("add", new String[]{e.toString()});
+        traceCall("add", new String[]{e == null ? "null" : e.toString()});
         insertCounter.put(super.size(), mapGetOrDefault(insertCounter, super.size(), 0) + 1);
         return super.add(e);
     }
 
     @Override
     public boolean remove(Object o) {
-        traceCall("remove", new String[]{o.toString()});
+        traceCall("remove", new String[]{o == null ? "null" : o.toString()});
         removeCounter.put(super.size(), mapGetOrDefault(removeCounter, super.size(), 0) + 1);
         return super.remove(o);
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        traceCall("containsAll", new String[]{c.toString()});
+        traceCall("containsAll", new String[]{c == null ? "null" : c.toString()});
         // too expensive to trace these gets
         return super.containsAll(c);
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        traceCall("addAll(Collection)", new String[]{c.toString()});
+        traceCall("addAll(Collection)", new String[]{c == null ? "null" : c.toString()});
         for (int i = super.size(); i < super.size() + c.size(); i++) { // FIXME - is this really a bunch of adds?
             insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
         }
@@ -199,7 +199,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
-        traceCall("addAll", new String[]{Integer.toString(index), c.toString()});
+        traceCall("addAll", new String[]{Integer.toString(index), c == null ? "null" : c.toString()});
         for (int i = index; i < index + c.size(); i++) { // FIXME - is this really a bunch of adds?
             insertCounter.put(i, mapGetOrDefault(insertCounter, i, 0) + 1);
         }
@@ -208,7 +208,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        traceCall("removeAll", new String[]{c.toString()});
+        traceCall("removeAll", new String[]{c == null ? "null" : c.toString()});
         // too expensive to trace these removes
         return super.removeAll(c);
     }
@@ -222,7 +222,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        traceCall("retainAll", new String[]{c.toString()});
+        traceCall("retainAll", new String[]{c == null ? "null" : c.toString()});
         return super.retainAll(c);
     }
 
@@ -234,7 +234,7 @@ public class SmartList<E> extends ArrayList<E> {
 
 //    @Override
 //    public void sort(Comparator<? super E> c) {
-//        traceCall("sort", new String[]{c.toString()});
+//        traceCall("sort", new String[]{c == null ? "null" : c.toString()});
 //        super.sort(c);
 //    }
 
@@ -253,15 +253,15 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public E set(int index, E element) {
-        traceCall("set", new String[]{Integer.toString(index), element.toString()});
+        traceCall("set", new String[]{Integer.toString(index), element == null ? "null" : element.toString()});
         setCounter.put(index, mapGetOrDefault(setCounter, index, 0) + 1);
         return super.set(index, element);
     }
 
     @Override
     public void add(int index, E element) {
-        traceCall("add", new String[]{Integer.toString(index), element.toString()});
-        insertCounter.put(index, mapGetOrDefault(insertCounter, index, 0) + 1);
+        //traceCall("add", new String[]{Integer.toString(index), element == null ? "null" : element.toString()});
+        //insertCounter.put(index, mapGetOrDefault(insertCounter, index, 0) + 1);
         super.add(index, element);
     }
 
@@ -274,7 +274,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public int indexOf(Object o) {
-        traceCall("indexOf", new String[]{o.toString()});
+        traceCall("indexOf", new String[]{o == null ? "null" : o.toString()});
         int out = super.indexOf(o);
         for (int i = 0; i <= out; i++) {
             getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);
@@ -284,7 +284,7 @@ public class SmartList<E> extends ArrayList<E> {
 
     @Override
     public int lastIndexOf(Object o) {
-        traceCall("lastIndexOf", new String[]{o.toString()});
+        traceCall("lastIndexOf", new String[]{o == null ? "null" : o.toString()});
         int out = super.lastIndexOf(o);
         for (int i = out; i < super.size(); i++) {
             getCounter.put(i, mapGetOrDefault(getCounter, i, 0) + 1);

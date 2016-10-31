@@ -120,7 +120,6 @@ public class SimpleListTest {
 	
 	public void growingAndShrinkingQueue( int nOperations ){
 		Random opSelector = new Random( 12345678 );
-		Random indexSelector = new Random( 12345678 );
 		
 		double getProb = 0.25;
 		double addProb = 0.6;
@@ -225,10 +224,10 @@ public class SimpleListTest {
 	
 
 	public static void main( String[] args ) throws IOException{
-		SmartList<Integer> l = new SmartList<Integer>();
+		ArrayList<Integer> l = new ArrayList<Integer>();
 		SimpleListTest test = new SimpleListTest( l );
 		System.out.println( "Starting test..." );
-		test.executeTest04( 10000000 );
+		test.executeTest04( 1000000 );
 		System.out.println( "...test finished in " + test.executionTimeMs + " milliseconds." );
 		
 		System.out.print( "Dumping list sizes..." );
