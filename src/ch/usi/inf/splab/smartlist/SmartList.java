@@ -58,28 +58,30 @@ public class SmartList<E> extends ArrayList<E> {
         traceCall(method, arguments, null);
     }
 
+    // Log format, each line:
+    // [size,key1:value1,key2:value2]method(args)
+    // keys and values are optional
     private void traceCall(String method, String[] arguments, Map<String, String> extra) {
 //        callCounter.put(method, mapGetOrDefault(callCounter, method, 0) + 1);
 
         try {
             StringBuilder sb = new StringBuilder();
-            sb.append("Size: ");
+            sb.append('[');
             sb.append(super.size());
-            sb.append('\t');
             if (extra != null) {
                 for (Map.Entry<String, String> entry : extra.entrySet()) {
+                    sb.append(',');
                     sb.append(entry.getKey());
-                    sb.append(": ");
+                    sb.append(':');
                     sb.append(entry.getValue());
-                    sb.append('\t');
                 }
             }
 
-            sb.append("Method: ");
+            sb.append(']');
             sb.append(method);
             sb.append('(');
             if (arguments != null) {
-                sb.append(stringJoin(", ", arguments));
+                sb.append(stringJoin(",", arguments));
             }
             sb.append(")\n");
 
