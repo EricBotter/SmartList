@@ -34,7 +34,7 @@ public final class Transformer implements ClassFileTransformer {
 			return classfileBuffer;
 		} else {
 			try {
-				System.out.println("About to transform class <"+loader+", "+className+">");
+				//System.out.println("About to transform class <"+loader+", "+className+">");
 				return instrument(classfileBuffer);
 			} catch (Throwable t) {
 				t.printStackTrace();
@@ -74,7 +74,7 @@ public final class Transformer implements ClassFileTransformer {
 						patch.add( new TypeInsnNode( Opcodes.NEW, "ch/usi/inf/splab/smartlist/SmartList" ) );
 						mn.instructions.insertBefore( tin, patch );
 						mn.instructions.remove( tin );
-						System.out.println( "\tSUB: NEW " + tin.desc );
+						//System.out.println( "\tSUB: NEW " + tin.desc );
 					}
 				}
 				break;
