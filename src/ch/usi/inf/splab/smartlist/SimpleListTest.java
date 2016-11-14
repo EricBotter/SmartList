@@ -34,12 +34,13 @@ public class SimpleListTest {
 		
 	    for( int i = 0 ; i < nOperations ; i++ ){
 	    	double num = opSelector.nextDouble();
-	    	if( num < (1.0/3.0) ){
+			int size = listUnderTest.size();
+			if( num < (1.0/3.0) ){
 	    		listUnderTest.add( 10 );
-	    	}else if( listUnderTest.size() > 0 && num < (2.0/3.0) ){
-	    		listUnderTest.get( indexSelector.nextInt( listUnderTest.size() ) );
-	    	}else if( listUnderTest.size() > 0 ){
-	    		listUnderTest.remove( indexSelector.nextInt( listUnderTest.size() ) );
+	    	}else if( size > 0 && num < (2.0/3.0) ){
+	    		listUnderTest.get( indexSelector.nextInt( size ) );
+	    	}else if( size > 0 ){
+	    		listUnderTest.remove( indexSelector.nextInt( size ) );
 	    	}
 	    	listUnderTestSizes.add( i, listUnderTest.size() );
 	    }
@@ -224,19 +225,15 @@ public class SimpleListTest {
 	
 
 	public static void main( String[] args ) throws IOException{
-		ArrayList<Integer> l = new ArrayList<Integer>();
+		ArrayList<Integer> l = new SmartList<Integer>();
 		SimpleListTest test = new SimpleListTest( l );
 		System.out.println( "Starting test..." );
-		test.executeTest04( 1000000 );
+		test.executeTest01( 100000 );
 		System.out.println( "...test finished in " + test.executionTimeMs + " milliseconds." );
 		
 		System.out.print( "Dumping list sizes..." );
 		test.dumpSizes( "sizes.txt" );
 		System.out.println( "done." );
-		
-		//System.out.print( "Dumping list operations..." );
-		//l.dumpStatsToFile( "operations.txt" );
-		//System.out.println( "done." );
 	}
 	
 	/*
