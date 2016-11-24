@@ -58,11 +58,13 @@ public final class Transformer implements ClassFileTransformer {
 	@SuppressWarnings("unchecked")
 	private void instrument(ClassNode cn) {
 		for (MethodNode mn : (List<MethodNode>)cn.methods) {
-			instrument(mn);
+			instrument(mn, cn.name);
 		}
 	}
 	
-	private void instrument( MethodNode mn ){
+	private void instrument( MethodNode mn, String className ){
+		boolean newFound = false;
+		
 		for( int i=0; i < mn.instructions.size(); i++ ){
 			AbstractInsnNode ain = mn.instructions.get(i);
 			switch(ain.getType()){
@@ -75,6 +77,7 @@ public final class Transformer implements ClassFileTransformer {
 						mn.instructions.insertBefore( tin, patch );
 						mn.instructions.remove( tin );
 						//System.out.println( "\tSUB: NEW " + tin.desc );
+						newFound = true;
 					}
 				}
 				break;
@@ -83,13 +86,15 @@ public final class Transformer implements ClassFileTransformer {
 				if( ain.getOpcode() == Opcodes.INVOKESPECIAL ){
 					MethodInsnNode tin = (MethodInsnNode)ain;
 					if( tin.owner.equals( "java/util/ArrayList" ) &&
-							tin.name.equals( "<init>" ) ){
+							tin.name.equals( "<init>" ) && newFound ){
 						InsnList patch = new InsnList();
 						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, 
 								"ch/usi/inf/splab/smartlist/SmartList", tin.name, tin.desc, false ) );
 						mn.instructions.insertBefore( tin, patch );
 						mn.instructions.remove( tin );
-						System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
+						//System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
+						//System.out.println( "\t\t" + className + ": "+  mn.name );
+						newFound = false;
 					}
 				}
 				break;
