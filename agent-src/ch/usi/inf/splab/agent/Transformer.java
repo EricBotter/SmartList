@@ -18,6 +18,32 @@ import org.objectweb.asm.tree.TypeInsnNode;
 
 public final class Transformer implements ClassFileTransformer {
 	
+	public static enum Options{
+		DO_NOTHING,
+		INJECT_SMART_LIST,
+		INJECT_SMALL_LIST
+	}
+	
+	private String listClassName;
+	private Options opt;
+	
+	public Transformer( Options opt ){
+		this.opt = opt;
+		switch( opt ){
+		case DO_NOTHING:
+			listClassName = null;
+			break;
+			
+		case INJECT_SMALL_LIST:
+			listClassName = "ch/usi/inf/splab/smartlist/SmallList";
+			break;
+			
+		case INJECT_SMART_LIST:
+			listClassName = "ch/usi/inf/splab/smartlist/SmartList";
+			break;
+		}
+	}
+	
 	@Override
 	public byte[] transform(final ClassLoader loader,
 			final String className,
@@ -30,6 +56,7 @@ public final class Transformer implements ClassFileTransformer {
 			className.startsWith("sun/") ||
 			className.startsWith("ch/usi/inf/splab/agent/") ||
 			className.startsWith("ch/usi/inf/splab/smartlist/SmartList") ||
+			className.startsWith("ch/usi/inf/splab/smartlist/SmallList") ||
 			className.startsWith("org/eclipse/core/runtime/adaptor") ){
 			return classfileBuffer;
 		} else {
@@ -58,11 +85,13 @@ public final class Transformer implements ClassFileTransformer {
 	@SuppressWarnings("unchecked")
 	private void instrument(ClassNode cn) {
 		for (MethodNode mn : (List<MethodNode>)cn.methods) {
-			instrument(mn);
+			instrument(mn, cn.name);
 		}
 	}
 	
-	private void instrument( MethodNode mn ){
+	private void instrument( MethodNode mn, String className ){
+		boolean newFound = false;
+		
 		for( int i=0; i < mn.instructions.size(); i++ ){
 			AbstractInsnNode ain = mn.instructions.get(i);
 			switch(ain.getType()){
@@ -71,10 +100,13 @@ public final class Transformer implements ClassFileTransformer {
 					TypeInsnNode tin = (TypeInsnNode)ain;
 					if( tin.desc.equals( "java/util/ArrayList" ) ){
 						InsnList patch = new InsnList();
-						patch.add( new TypeInsnNode( Opcodes.NEW, "ch/usi/inf/splab/smartlist/SmartList" ) );
-						mn.instructions.insertBefore( tin, patch );
-						mn.instructions.remove( tin );
+						patch.add( new TypeInsnNode( Opcodes.NEW, listClassName ) );
+						if( opt != Options.DO_NOTHING ){
+							mn.instructions.insertBefore( tin, patch );
+							mn.instructions.remove( tin );
+						}
 						//System.out.println( "\tSUB: NEW " + tin.desc );
+						newFound = true;
 					}
 				}
 				break;
@@ -83,13 +115,17 @@ public final class Transformer implements ClassFileTransformer {
 				if( ain.getOpcode() == Opcodes.INVOKESPECIAL ){
 					MethodInsnNode tin = (MethodInsnNode)ain;
 					if( tin.owner.equals( "java/util/ArrayList" ) &&
-							tin.name.equals( "<init>" ) ){
+							tin.name.equals( "<init>" ) && newFound ){
 						InsnList patch = new InsnList();
 						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, 
-								"ch/usi/inf/splab/smartlist/SmartList", tin.name, tin.desc, false ) );
-						mn.instructions.insertBefore( tin, patch );
-						mn.instructions.remove( tin );
-						System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
+								listClassName, tin.name, tin.desc, false ) );
+						if( opt != Options.DO_NOTHING ){
+							mn.instructions.insertBefore( tin, patch );
+							mn.instructions.remove( tin );
+						}
+						//System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
+						//System.out.println( "\t\t" + className + ": "+  mn.name );
+						newFound = false;
 					}
 				}
 				break;

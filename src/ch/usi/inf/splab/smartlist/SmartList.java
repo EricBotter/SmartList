@@ -10,7 +10,9 @@ import java.util.*;
 
 public class SmartList<E> extends ArrayList<E> {
 
-    private static int globalCounter = 0;
+	private static final long serialVersionUID = -4482973559699474949L;
+
+	private static int globalCounter = 0;
 
     private int id;
 
