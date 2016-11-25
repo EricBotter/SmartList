@@ -2,9 +2,9 @@ package ch.usi.inf.splab.smartlist;
 
 import java.util.*;
 
-public class SmallList<E> implements List<E> {
+public class SmallList<E> extends ArrayList<E> {
 
-    private class Wrapper<T> {
+    private final class Wrapper<T> {
         T value;
 
         Wrapper() {
@@ -13,23 +13,29 @@ public class SmallList<E> implements List<E> {
         Wrapper(T t) {
             value = t;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return value != null && value.equals(o);
+        }
     }
 
     private Object element;
 
     public SmallList() {
+        super(0);
         element = null;
     }
 
     public SmallList(int capacity) {
-        if (capacity == 1) {
-            element = new Wrapper();
-        } else {
-            element = new ArrayList<>(capacity);
+        super(0);
+        if (capacity > 1) {
+            element = new ArrayList<E>(capacity);
         }
     }
 
     public SmallList(Collection<? extends E> c) {
+        super(0);
         element = new ArrayList<>(c);
     }
 
@@ -38,7 +44,7 @@ public class SmallList<E> implements List<E> {
             element = new ArrayList<>();
         if (element instanceof Wrapper) {
             E temp = ((Wrapper<E>) element).value;
-            ArrayList<E> al = new ArrayList<>();
+            ArrayList<E> al = new ArrayList<E>();
             al.add(temp);
             element = al;
         }
@@ -104,7 +110,7 @@ public class SmallList<E> implements List<E> {
     @Override
     public boolean remove(Object o) {
         if (element instanceof Wrapper) {
-            if (((Wrapper<E>) element).value.equals(o)) {
+            if (element.equals(o)) {
                 element = null;
                 return true;
             }
@@ -177,7 +183,7 @@ public class SmallList<E> implements List<E> {
         if (element == null) {
             if (index > 0)
                 throw new IndexOutOfBoundsException();
-            this.element = new Wrapper<E>(e);
+            element = new Wrapper<E>(e);
         }
         forceToArrayList();
         ((ArrayList<E>) element).add(index, e);
@@ -200,8 +206,7 @@ public class SmallList<E> implements List<E> {
     @Override
     public int indexOf(Object o) {
         if (element instanceof Wrapper) {
-            E val = ((Wrapper<E>) element).value;
-            if (val.equals(o))
+            if (element.equals(o))
                 return 0;
             return -1;
         }

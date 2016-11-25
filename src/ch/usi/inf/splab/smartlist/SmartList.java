@@ -12,28 +12,40 @@ public class SmartList<E> extends ArrayList<E> {
 
     private static int globalCounter = 0;
 
-    private String filename;
+    private int id;
 
     private void customInit() {
-        filename = "./log_" + String.format("%04d", globalCounter++) + ".txt";
+        id = globalCounter++;
     }
 
     public SmartList() {
         super();
         customInit();
-        traceCall("<init>", null);
+        HashMap<String, String> extra = new HashMap<>();
+        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+        extra.put("CallerClass", callSite.getClassName());
+        extra.put("CallerMethod", callSite.getMethodName());
+        traceCall("<init>", null, extra);
     }
 
     public SmartList(int capacity) {
         super(capacity);
         customInit();
-        traceCall("<init>", new String[]{Integer.toString(capacity)});
+        HashMap<String, String> extra = new HashMap<>();
+        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+        extra.put("CallerClass", callSite.getClassName());
+        extra.put("CallerMethod", callSite.getMethodName());
+        traceCall("<init>", new String[]{Integer.toString(capacity)}, extra);
     }
 
     public SmartList(Collection<? extends E> c) {
         super(c);
         customInit();
-        traceCall("<init>", new String[]{"Collection"});
+        HashMap<String, String> extra = new HashMap<>();
+        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+        extra.put("CallerClass", callSite.getClassName());
+        extra.put("CallerMethod", callSite.getMethodName());
+        traceCall("<init>", new String[]{"Collection"}, extra);
     }
 
 //    private <K, V> V mapGetOrDefault(Map<K, V> map, K key, V value) {
@@ -59,7 +71,7 @@ public class SmartList<E> extends ArrayList<E> {
     }
 
     // Log format, each line:
-    // [size,key1:value1,key2:value2]method(args)
+    // [id,size,key1:value1,key2:value2]method(args)
     // keys and values are optional
     private void traceCall(String method, String[] arguments, Map<String, String> extra) {
 //        callCounter.put(method, mapGetOrDefault(callCounter, method, 0) + 1);
@@ -67,6 +79,8 @@ public class SmartList<E> extends ArrayList<E> {
         try {
             StringBuilder sb = new StringBuilder();
             sb.append('[');
+            sb.append(id);
+            sb.append(',');
             sb.append(super.size());
             if (extra != null) {
                 for (Map.Entry<String, String> entry : extra.entrySet()) {
@@ -85,9 +99,11 @@ public class SmartList<E> extends ArrayList<E> {
             }
             sb.append(")\n");
 
-            FileOutputStream fos = new FileOutputStream(filename, true);
-            fos.write(sb.toString().getBytes());
-            fos.close();
+            FileOutputStream fos = new FileOutputStream("log.txt", true);
+            synchronized (SmartList.class) {
+                fos.write(sb.toString().getBytes());
+                fos.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
