@@ -16,7 +16,9 @@ public class SmallList<E> extends ArrayList<E> {
 
         @Override
         public boolean equals(Object o) {
-            return value != null && value.equals(o);
+            if (value == null)
+                return o == null;
+            return value.equals(o);
         }
     }
 
@@ -67,7 +69,7 @@ public class SmallList<E> extends ArrayList<E> {
     @Override
     public boolean contains(Object o) {
         if (element instanceof Wrapper)
-            return o.equals(((Wrapper<E>) element).value);
+            return element.equals(o);
         return element instanceof ArrayList && ((ArrayList) element).contains(o);
     }
 
@@ -76,13 +78,6 @@ public class SmallList<E> extends ArrayList<E> {
         forceToArrayList();
         return ((ArrayList<E>) element).iterator();
     }
-
-//    @Override
-//    public void forEach(Consumer<? super E> action) {
-//        traceCall("forEach", new String[]{action.toString()});
-//        // too expensive to trace these gets
-//        super.forEach(action);
-//    }
 
     @Override
     public Object[] toArray() {
@@ -156,6 +151,8 @@ public class SmallList<E> extends ArrayList<E> {
 
     @Override
     public E get(int index) {
+        if (index < 0)
+            throw new IndexOutOfBoundsException();
         if (element instanceof Wrapper) {
             if (index > 0)
                 throw new IndexOutOfBoundsException();
@@ -168,10 +165,14 @@ public class SmallList<E> extends ArrayList<E> {
 
     @Override
     public E set(int index, E e) {
+        if (index < 0)
+            throw new IndexOutOfBoundsException();
         if (element instanceof Wrapper) {
             if (index > 0)
                 throw new IndexOutOfBoundsException();
-            return ((Wrapper<E>) element).value = e;
+            E value = ((Wrapper<E>) element).value;
+            ((Wrapper<E>) element).value = e;
+            return value;
         }
         if (element == null)
             throw new IndexOutOfBoundsException();
@@ -180,6 +181,8 @@ public class SmallList<E> extends ArrayList<E> {
 
     @Override
     public void add(int index, E e) {
+        if (index < 0)
+            throw new IndexOutOfBoundsException();
         if (element == null) {
             if (index > 0)
                 throw new IndexOutOfBoundsException();
@@ -191,6 +194,8 @@ public class SmallList<E> extends ArrayList<E> {
 
     @Override
     public E remove(int index) {
+        if (index < 0)
+            throw new IndexOutOfBoundsException();
         if (element instanceof Wrapper) {
             if (index > 0)
                 throw new IndexOutOfBoundsException();
