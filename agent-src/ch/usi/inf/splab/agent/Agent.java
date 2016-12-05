@@ -10,13 +10,13 @@ public class Agent {
 		System.out.println("Agent starting (arguments: '"+agentArgs+"')");
 		if( "SmallList".equals(agentArgs) )
 			inst.addTransformer( new Transformer( Options.INJECT_SMALL_LIST ) );
-		else if( "SmartList".equals(agentArgs) )
-			inst.addTransformer( new Transformer( Options.INJECT_SMART_LIST ) );
+		else if( "DumperList".equals(agentArgs) )
+			inst.addTransformer( new Transformer( Options.INJECT_DUMPER_LIST ) );
 		else if( "DoNothing".equals(agentArgs) )
 			inst.addTransformer( new Transformer( Options.DO_NOTHING ) );
 		else
 			throw new IllegalArgumentException( "Bad agent argument. \n\tUsage: "
-					+ "-javaagent:agent.jar=(DoNothing | SmartList | SmallList)" );	
+					+ "-javaagent:agent.jar=(DoNothing | DumperList | SmallList)" );	
 	}
 	
 }

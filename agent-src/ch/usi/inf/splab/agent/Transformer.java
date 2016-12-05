@@ -11,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
@@ -20,7 +21,7 @@ public final class Transformer implements ClassFileTransformer {
 	
 	public static enum Options{
 		DO_NOTHING,
-		INJECT_SMART_LIST,
+		INJECT_DUMPER_LIST,
 		INJECT_SMALL_LIST
 	}
 	
@@ -34,12 +35,12 @@ public final class Transformer implements ClassFileTransformer {
 			listClassName = null;
 			break;
 			
-		case INJECT_SMALL_LIST:
-			listClassName = "ch/usi/inf/splab/smartlist/SmallList";
+		case INJECT_DUMPER_LIST:
+			listClassName = "ch/usi/inf/splab/smartlist/DumperList";
 			break;
 			
-		case INJECT_SMART_LIST:
-			listClassName = "ch/usi/inf/splab/smartlist/SmartList";
+		case INJECT_SMALL_LIST:
+			listClassName = "ch/usi/inf/splab/smartlist/SmallList";
 			break;
 		}
 	}
@@ -55,7 +56,7 @@ public final class Transformer implements ClassFileTransformer {
 		if( className.startsWith("java/") ||
 			className.startsWith("sun/") ||
 			className.startsWith("ch/usi/inf/splab/agent/") ||
-			className.startsWith("ch/usi/inf/splab/smartlist/SmartList") ||
+			className.startsWith("ch/usi/inf/splab/smartlist/DumperList") ||
 			className.startsWith("ch/usi/inf/splab/smartlist/SmallList") ||
 			className.startsWith("org/eclipse/core/runtime/adaptor") ){
 			return classfileBuffer;
@@ -75,7 +76,10 @@ public final class Transformer implements ClassFileTransformer {
 		ClassNode cn = new ClassNode();
 		cr.accept(cn, 0);
 
-		instrument(cn);
+		if( opt == Options.INJECT_DUMPER_LIST )
+			instrumentForDumper(cn);
+		else
+			instrument(cn);
 		
 		final ClassWriter cw = new ClassWriter(0);
 		cn.accept(cw);
@@ -89,6 +93,54 @@ public final class Transformer implements ClassFileTransformer {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	private void instrumentForDumper(ClassNode cn) {
+		for (MethodNode mn : (List<MethodNode>)cn.methods) {
+			instrumentForDumper(mn, cn.name);
+		}
+	}
+	
+	private void instrumentForDumper( MethodNode mn, String className ){
+		boolean newFound = false;
+		
+		for( int i=0; i < mn.instructions.size(); i++ ){
+			AbstractInsnNode ain = mn.instructions.get(i);
+			switch(ain.getType()){
+			case AbstractInsnNode.TYPE_INSN:
+				if( ain.getOpcode() == Opcodes.NEW ){
+					TypeInsnNode tin = (TypeInsnNode)ain;
+					if( tin.desc.equals( "java/util/ArrayList" ) ){
+						InsnList patch = new InsnList();
+						patch.add( new TypeInsnNode( Opcodes.NEW, listClassName ) );
+						mn.instructions.insertBefore( tin, patch );
+						mn.instructions.remove( tin );
+						newFound = true;
+					}
+				}
+				break;
+				
+			case AbstractInsnNode.METHOD_INSN:
+				if( ain.getOpcode() == Opcodes.INVOKESPECIAL ){
+					MethodInsnNode min = (MethodInsnNode)ain;
+					if( min.owner.equals( "java/util/ArrayList" ) && min.name.equals( "<init>" ) && newFound ){
+						String allocationSiteId = className + "$" + mn.name + "$" + mn.instructions.indexOf(min);
+						String constructorType = appendStringArgument(min.desc);
+						InsnList patch = new InsnList();
+						patch.add( new LdcInsnNode(allocationSiteId) );
+						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, listClassName, min.name, constructorType, false ) );
+						//System.out.println( "\tSUB: INVOKESPECIAL " + className + "$" + mn.name + "$" + mn.instructions.indexOf(min) );
+						mn.instructions.insertBefore( min, patch );
+						mn.instructions.remove( min );
+						i += 1;
+						mn.maxStack += 1;
+						newFound = false;
+					}
+				}
+				break;
+			}
+		}
+	}
+
 	private void instrument( MethodNode mn, String className ){
 		boolean newFound = false;
 		
@@ -113,24 +165,27 @@ public final class Transformer implements ClassFileTransformer {
 				
 			case AbstractInsnNode.METHOD_INSN:
 				if( ain.getOpcode() == Opcodes.INVOKESPECIAL ){
-					MethodInsnNode tin = (MethodInsnNode)ain;
-					if( tin.owner.equals( "java/util/ArrayList" ) &&
-							tin.name.equals( "<init>" ) && newFound ){
+					MethodInsnNode min = (MethodInsnNode)ain;
+					if( min.owner.equals( "java/util/ArrayList" ) && min.name.equals( "<init>" ) && newFound ){
 						InsnList patch = new InsnList();
-						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, 
-								listClassName, tin.name, tin.desc, false ) );
+						patch.add( new MethodInsnNode( Opcodes.INVOKESPECIAL, listClassName, min.name, min.desc, false ) );
 						if( opt != Options.DO_NOTHING ){
-							mn.instructions.insertBefore( tin, patch );
-							mn.instructions.remove( tin );
+							//System.out.println( "\tSUB: INVOKESPECIAL " + className + "$" + mn.name + "$" + mn.instructions.indexOf(min) );
+							mn.instructions.insertBefore( min, patch );
+							mn.instructions.remove( min );
 						}
-						//System.out.println( "\tSUB: INVOKESPECIAL " + tin.owner + " " + tin.name + tin.desc );
-						//System.out.println( "\t\t" + className + ": "+  mn.name );
 						newFound = false;
 					}
 				}
 				break;
 			}
 		}
+	}
+
+	
+	private String appendStringArgument( String typeDesc ) {
+		int parenPos = typeDesc.length() - 2;
+		return typeDesc.substring(0, parenPos) + "Ljava/lang/String;" + typeDesc.substring(parenPos);
 	}
 	
 }

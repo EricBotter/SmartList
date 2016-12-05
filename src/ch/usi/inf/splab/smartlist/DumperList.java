@@ -3,51 +3,49 @@ package ch.usi.inf.splab.smartlist;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-//import java.util.function.Consumer;
-//import java.util.function.Predicate;
-//import java.util.function.UnaryOperator;
-//import java.util.stream.Stream;
 
-public class SmartList<E> extends ArrayList<E> {
+public class DumperList<E> extends ArrayList<E> {
 
 	private static final long serialVersionUID = -4482973559699474949L;
 
 	private static int globalCounter = 0;
 
     private int id;
+    private String allocationSite;
 
     private void customInit() {
         id = globalCounter++;
     }
 
-    public SmartList() {
+    public DumperList(String allocationSite) {
         super();
         customInit();
+        this.allocationSite = allocationSite;
         HashMap<String, String> extra = new HashMap<>();
-        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-        extra.put("CallerClass", callSite.getClassName());
-        extra.put("CallerMethod", callSite.getMethodName());
+        extra.put("AllocationSite", allocationSite);
         traceCall("<init>", null, extra);
     }
 
-    public SmartList(int capacity) {
+    public DumperList(int capacity, String allocationSite) {
         super(capacity);
         customInit();
+        this.allocationSite = allocationSite;
         HashMap<String, String> extra = new HashMap<>();
-        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-        extra.put("CallerClass", callSite.getClassName());
-        extra.put("CallerMethod", callSite.getMethodName());
+        extra.put("AllocationSite", allocationSite);
         traceCall("<init>", new String[]{Integer.toString(capacity)}, extra);
     }
 
-    public SmartList(Collection<? extends E> c) {
+    public DumperList(Collection<? extends E> c, String allocationSite) {
         super(c);
         customInit();
+        this.allocationSite = allocationSite;
         HashMap<String, String> extra = new HashMap<>();
-        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-        extra.put("CallerClass", callSite.getClassName());
-        extra.put("CallerMethod", callSite.getMethodName());
+        extra.put("AllocationSite", allocationSite);
         traceCall("<init>", new String[]{"Collection"}, extra);
+    }
+    
+    public String getAllocationSite(){
+    	return allocationSite;
     }
 
 //    private <K, V> V mapGetOrDefault(Map<K, V> map, K key, V value) {
@@ -102,7 +100,7 @@ public class SmartList<E> extends ArrayList<E> {
             sb.append(")\n");
 
             FileOutputStream fos = new FileOutputStream("log.txt", true);
-            synchronized (SmartList.class) {
+            synchronized (DumperList.class) {
                 fos.write(sb.toString().getBytes());
                 fos.close();
             }

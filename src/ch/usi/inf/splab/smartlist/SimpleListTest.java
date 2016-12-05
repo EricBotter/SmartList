@@ -225,7 +225,7 @@ public class SimpleListTest {
 	
 
 	public static void main( String[] args ) throws IOException{
-		ArrayList<Integer> l = new SmartList<Integer>();
+		ArrayList<Integer> l = new DumperList<Integer>("AllocationSite");
 		SimpleListTest test = new SimpleListTest( l );
 		System.out.println( "Starting test..." );
 		test.executeTest01( 100000 );

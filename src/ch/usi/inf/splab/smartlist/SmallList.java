@@ -4,11 +4,10 @@ import java.util.*;
 
 public class SmallList<E> extends ArrayList<E> {
 
-    private final class Wrapper<T> {
-        T value;
+	private static final long serialVersionUID = -7869404750138322883L;
 
-        Wrapper() {
-        }
+	private static final class Wrapper<T> {
+        T value;
 
         Wrapper(T t) {
             value = t;
@@ -51,8 +50,14 @@ public class SmallList<E> extends ArrayList<E> {
             element = al;
         }
     }
+    
+    public void trimToSize(){
+    	if (element instanceof ArrayList)
+    		super.trimToSize();
+    }
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public int size() {
         if (element instanceof Wrapper)
             return 1;
@@ -66,7 +71,8 @@ public class SmallList<E> extends ArrayList<E> {
         return element == null;
     }
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public boolean contains(Object o) {
         if (element instanceof Wrapper)
             return element.equals(o);
