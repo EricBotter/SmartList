@@ -21,6 +21,8 @@ public class SmallList<E> extends ArrayList<E> {
         }
     }
 
+    private final static class LongElement {}
+
     private Object element;
 
     public SmallList() {
@@ -31,28 +33,34 @@ public class SmallList<E> extends ArrayList<E> {
     public SmallList(int capacity) {
         super(0);
         if (capacity > 1) {
-            element = new ArrayList<E>(capacity);
+            element = new LongElement();
+            super.ensureCapacity(capacity);
         }
     }
 
+    @Override
+    public void ensureCapacity(int minCapacity) {
+        forceToArrayList();
+        super.ensureCapacity(minCapacity);
+    }
+
     public SmallList(Collection<? extends E> c) {
-        super(0);
-        element = new ArrayList<>(c);
+        super(c);
+        element = new LongElement();
     }
 
     private void forceToArrayList() {
         if (element == null)
-            element = new ArrayList<>();
+            element = new LongElement();
         if (element instanceof Wrapper) {
             E temp = ((Wrapper<E>) element).value;
-            ArrayList<E> al = new ArrayList<E>();
-            al.add(temp);
-            element = al;
+            super.add(temp);
+            element = new LongElement();
         }
     }
     
     public void trimToSize(){
-    	if (element instanceof ArrayList)
+    	if (element instanceof LongElement)
     		super.trimToSize();
     }
 
@@ -61,8 +69,8 @@ public class SmallList<E> extends ArrayList<E> {
     public int size() {
         if (element instanceof Wrapper)
             return 1;
-        if (element instanceof ArrayList)
-            return ((ArrayList) element).size();
+        if (element instanceof LongElement)
+            return super.size();
         return 0;
     }
 
@@ -76,25 +84,25 @@ public class SmallList<E> extends ArrayList<E> {
     public boolean contains(Object o) {
         if (element instanceof Wrapper)
             return element.equals(o);
-        return element instanceof ArrayList && ((ArrayList) element).contains(o);
+        return element instanceof LongElement && super.contains(o);
     }
 
     @Override
     public Iterator<E> iterator() {
         forceToArrayList();
-        return ((ArrayList<E>) element).iterator();
+        return super.iterator();
     }
 
     @Override
     public Object[] toArray() {
         forceToArrayList();
-        return ((ArrayList<E>) element).toArray();
+        return super.toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
         forceToArrayList();
-        return ((ArrayList<E>) element).toArray(a);
+        return super.toArray(a);
     }
 
     @Override
@@ -104,7 +112,7 @@ public class SmallList<E> extends ArrayList<E> {
             return true;
         } else {
             forceToArrayList();
-            return ((ArrayList<E>) element).add(e);
+            return super.add(e);
         }
     }
 
@@ -117,37 +125,37 @@ public class SmallList<E> extends ArrayList<E> {
             }
             return false;
         }
-        return element != null && ((ArrayList<E>) element).remove(o);
+        return element != null && super.remove(o);
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
         forceToArrayList();
-        return ((ArrayList<E>) element).containsAll(c);
+        return super.containsAll(c);
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
         forceToArrayList();
-        return ((ArrayList<E>) element).addAll(c);
+        return super.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         forceToArrayList();
-        return ((ArrayList<E>) element).addAll(index, c);
+        return super.addAll(index, c);
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
         forceToArrayList();
-        return ((ArrayList<E>) element).removeAll(c);
+        return super.removeAll(c);
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
         forceToArrayList();
-        return ((ArrayList<E>) element).retainAll(c);
+        return super.retainAll(c);
     }
 
     @Override
@@ -166,7 +174,7 @@ public class SmallList<E> extends ArrayList<E> {
         }
         if (element == null)
             throw new IndexOutOfBoundsException();
-        return ((ArrayList<E>) element).get(index);
+        return super.get(index);
     }
 
     @Override
@@ -182,7 +190,7 @@ public class SmallList<E> extends ArrayList<E> {
         }
         if (element == null)
             throw new IndexOutOfBoundsException();
-        return ((ArrayList<E>) element).set(index, e);
+        return super.set(index, e);
     }
 
     @Override
@@ -195,7 +203,7 @@ public class SmallList<E> extends ArrayList<E> {
             element = new Wrapper<E>(e);
         }
         forceToArrayList();
-        ((ArrayList<E>) element).add(index, e);
+        super.add(index, e);
     }
 
     @Override
@@ -211,7 +219,7 @@ public class SmallList<E> extends ArrayList<E> {
         }
         if (element == null)
             throw new IndexOutOfBoundsException();
-        return ((ArrayList<E>) element).remove(index);
+        return super.remove(index);
     }
 
     @Override
@@ -223,30 +231,36 @@ public class SmallList<E> extends ArrayList<E> {
         }
         if (element == null)
             return -1;
-        return ((ArrayList<E>) element).indexOf(o);
+        return super.indexOf(o);
     }
 
     @Override
     public int lastIndexOf(Object o) {
         forceToArrayList();
-        return ((ArrayList<E>) element).lastIndexOf(o);
+        return super.lastIndexOf(o);
+    }
+
+    @Override
+    protected void removeRange(int fromIndex, int toIndex) {
+        forceToArrayList();
+        super.removeRange(fromIndex, toIndex);
     }
 
     @Override
     public ListIterator<E> listIterator() {
         forceToArrayList();
-        return ((ArrayList<E>) element).listIterator();
+        return super.listIterator();
     }
 
     @Override
     public ListIterator<E> listIterator(int index) {
         forceToArrayList();
-        return ((ArrayList<E>) element).listIterator(index);
+        return super.listIterator(index);
     }
 
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
         forceToArrayList();
-        return ((ArrayList<E>) element).subList(fromIndex, toIndex);
+        return super.subList(fromIndex, toIndex);
     }
 }
