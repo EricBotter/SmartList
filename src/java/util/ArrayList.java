@@ -460,6 +460,14 @@ public class ArrayList<E> extends AbstractList<E>
         return oldValue;
     }
 
+    public E setList(int index, E element) {
+        rangeCheck(index);
+
+        E oldValue = elementData(index);
+        elementData[index] = element;
+        return oldValue;
+    }
+
     /**
      * Appends the specified element to the end of this list.
      *
@@ -495,6 +503,16 @@ public class ArrayList<E> extends AbstractList<E>
         size++;
     }
 
+    public void addList(int index, E element) {
+        rangeCheckForAdd(index);
+
+        ensureCapacityInternal(size + 1);  // Increments modCount!!
+        System.arraycopy(elementData, index, elementData, index + 1,
+                size - index);
+        elementData[index] = element;
+        size++;
+    }
+
     /**
      * Removes the element at the specified position in this list.
      * Shifts any subsequent elements to the left (subtracts one from their
@@ -512,6 +530,21 @@ public class ArrayList<E> extends AbstractList<E>
 
         int numMoved = size - index - 1;
         traceCall("remove", new String[]{Integer.toString(index)}, numMoved, Math.min(index, size - index));
+        if (numMoved > 0)
+            System.arraycopy(elementData, index + 1, elementData, index,
+                    numMoved);
+        elementData[--size] = null; // clear to let GC do its work
+
+        return oldValue;
+    }
+
+    public E removeList(int index) {
+        rangeCheck(index);
+
+        modCount++;
+        E oldValue = elementData(index);
+
+        int numMoved = size - index - 1;
         if (numMoved > 0)
             System.arraycopy(elementData, index + 1, elementData, index,
                     numMoved);
@@ -884,6 +917,7 @@ public class ArrayList<E> extends AbstractList<E>
             if (i >= elementData.length)
                 throw new ConcurrentModificationException();
             cursor = i + 1;
+            traceCall("Itr$next", null, 1);
             return (E) elementData[lastRet = i];
         }
 
@@ -893,7 +927,9 @@ public class ArrayList<E> extends AbstractList<E>
             checkForComodification();
 
             try {
-                ArrayList.this.remove(lastRet);
+                ArrayList.this.removeList(lastRet);
+                traceCall("Itr$remove", null, size - lastRet, 1);
+
                 cursor = lastRet;
                 lastRet = -1;
                 expectedModCount = modCount;
@@ -939,6 +975,7 @@ public class ArrayList<E> extends AbstractList<E>
             if (i >= elementData.length)
                 throw new ConcurrentModificationException();
             cursor = i;
+            traceCall("ListItr$previous", null, 1);
             return (E) elementData[lastRet = i];
         }
 
@@ -948,7 +985,8 @@ public class ArrayList<E> extends AbstractList<E>
             checkForComodification();
 
             try {
-                ArrayList.this.set(lastRet, e);
+                ArrayList.this.setList(lastRet, e);
+                traceCall("ListItr$set", new String[]{"Object"}, 1);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
             }
@@ -959,7 +997,8 @@ public class ArrayList<E> extends AbstractList<E>
 
             try {
                 int i = cursor;
-                ArrayList.this.add(i, e);
+                ArrayList.this.addList(i, e);
+                traceCall("ListItr$add", new String[]{"Object"}, size - i, 1);
                 cursor = i + 1;
                 lastRet = -1;
                 expectedModCount = modCount;
@@ -999,6 +1038,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @throws IllegalArgumentException  {@inheritDoc}
      */
     public List<E> subList(int fromIndex, int toIndex) {
+        traceCall("subList", new String[]{Integer.toString(fromIndex), Integer.toString(toIndex)});
         subListRangeCheck(fromIndex, toIndex, size);
         return new SubList(this, 0, fromIndex, toIndex);
     }
