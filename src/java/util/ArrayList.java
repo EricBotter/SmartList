@@ -437,7 +437,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public E get(int index) {
         rangeCheck(index);
-        traceCall("get", new String[]{Integer.toString(index)}, 1, Math.min(index, size - index));
+        traceCall("get", new String[]{Integer.toString(index)}, 1, Math.min(index + 1, size - index));
 
         return elementData(index);
     }
@@ -453,7 +453,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public E set(int index, E element) {
         rangeCheck(index);
-        traceCall("set", new String[]{Integer.toString(index), "Object"}, 1, Math.min(index, size - index));
+        traceCall("set", new String[]{Integer.toString(index), "Object"}, 1, Math.min(index + 1, size - index));
 
         E oldValue = elementData(index);
         elementData[index] = element;
@@ -494,7 +494,7 @@ public class ArrayList<E> extends AbstractList<E>
     public void add(int index, E element) {
         rangeCheckForAdd(index);
 
-        traceCall("add", new String[]{Integer.toString(index), "Object"}, size - index, Math.min(index, size - index));
+        traceCall("add", new String[]{Integer.toString(index), "Object"}, size - index, Math.min(index + 1, size - index));
 
         ensureCapacityInternal(size + 1);  // Increments modCount!!
         System.arraycopy(elementData, index, elementData, index + 1,
@@ -529,7 +529,7 @@ public class ArrayList<E> extends AbstractList<E>
         E oldValue = elementData(index);
 
         int numMoved = size - index - 1;
-        traceCall("remove", new String[]{Integer.toString(index)}, numMoved, Math.min(index, size - index));
+        traceCall("remove", new String[]{Integer.toString(index)}, numMoved, Math.min(index + 1, size - index));
         if (numMoved > 0)
             System.arraycopy(elementData, index + 1, elementData, index,
                     numMoved);
@@ -666,7 +666,7 @@ public class ArrayList<E> extends AbstractList<E>
             System.arraycopy(elementData, index, elementData, index + numNew,
                     numMoved);
 
-        traceCall("addAll", new String[]{"Collection"}, numNew + numMoved, numNew + Math.min(index, size - index));
+        traceCall("addAll", new String[]{"Collection"}, numNew + numMoved, numNew + Math.min(index, size - index - 1));
 
         System.arraycopy(a, 0, elementData, index, numNew);
         size += numNew;
@@ -699,7 +699,7 @@ public class ArrayList<E> extends AbstractList<E>
             elementData[i] = null;
         }
         traceCall("removeRange", new String[]{Integer.toString(fromIndex), Integer.toString(toIndex)},
-                numMoved + (size - newSize), Math.min(fromIndex, size - toIndex) + toIndex - fromIndex);
+                numMoved + (size - newSize), Math.min(fromIndex, size - toIndex - 1) + toIndex - fromIndex);
 
         size = newSize;
     }
