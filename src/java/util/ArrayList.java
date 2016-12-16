@@ -1278,7 +1278,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     private String extractAllocationSite() {
-        StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+        StackTraceElement callSite = Thread.currentThread().getStackTrace()[4];
         String as = callSite.getClassName() + "$"
                 + callSite.getMethodName() + "$" + callSite.getLineNumber();
         return as;
