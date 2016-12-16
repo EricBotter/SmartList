@@ -10,7 +10,9 @@ import java.util.regex.Pattern;
 class LogLine {
     final int id;
     final int sizeBefore;
-    final HashMap<String, Integer> params;
+    final int impactArray;
+    final int impactList;
+    final String allocationSite;
     final String method;
     final List<String> methodArgs;
 
@@ -20,19 +22,9 @@ class LogLine {
 
         id = Integer.valueOf(elements[0]);
         sizeBefore = Integer.valueOf(elements[1]);
-        params = new HashMap<>(elements.length-2, 1);
-
-        for (int i = 2; i < elements.length; i++) {
-            String key = elements[i].substring(0, elements[i].indexOf(':'));
-            String value = elements[i].substring(elements[i].indexOf(':') + 1);
-            int intval;
-            try {
-                intval = Integer.parseInt(value);
-            } catch (NumberFormatException x) {
-                continue;
-            }
-            params.put(key, intval);
-        }
+        impactArray = Integer.valueOf(elements[2]);
+        impactList = Integer.valueOf(elements[3]);
+        allocationSite = elements[4];
 
         line = line.substring(line.indexOf(']') + 1);
         method = line.substring(0, line.indexOf('('));

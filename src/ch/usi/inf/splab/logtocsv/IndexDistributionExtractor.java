@@ -12,7 +12,7 @@ public class IndexDistributionExtractor {
     private static DecimalFormat df = new DecimalFormat("         0");
 
     private static class ImpactPerAction {
-        int insert = 0, remove = 0, get = 0, set = 0, maxlistsize = 0;
+        int insert = 0, remove = 0, get = 0, set = 0, other = 0, maxlistsize = 0;
     }
 
     public static void main(String[] args) throws IOException {
@@ -43,56 +43,56 @@ public class IndexDistributionExtractor {
             }
 
             ipaA.maxlistsize = Math.max(ipaA.maxlistsize, l.sizeBefore);
+            int impactA = l.impactArray, impactL = l.impactList;
+            String action = "";
 
-            if (l.params.size() == 0) continue;
-
-            String action = l.params.keySet().iterator().next();
-            int index = l.params.values().iterator().next();
-            int impactA, impactL;
-            switch (action) {
-                case "Insert":
-                    impactA = l.sizeBefore - index + 1;
-                    impactL = Math.min(l.sizeBefore - index + 1, index + 1);
-                    break;
-                case "Remove":
-                    impactA = l.sizeBefore - index;
-                    impactL = Math.min(l.sizeBefore - index, index + 1);
-                    break;
-                case "Get":
-                case "Set":
-                    impactA = 1;
-                    impactL = Math.min(l.sizeBefore - index + 1, index + 1);
-                    break;
-                default:
-                    continue;
-            }
-            switch (action) {
-                case "Insert":
-                    ipaA.insert += impactA;
-                    ipaL.insert += impactL;
-                    break;
-                case "Remove":
-                    ipaA.remove += impactA;
-                    ipaL.remove += impactL;
-                    break;
-                case "Get":
+            switch (l.method) {
+                case "indexOf":
+                case "get":
+                case "Itr$next":
+                case "ListItr$previous":
+                    action = "Get";
                     ipaA.get += impactA;
                     ipaL.get += impactL;
                     break;
-                case "Set":
+                case "set":
+                case "ListItr$set":
+                    action = "Set";
                     ipaA.set += impactA;
                     ipaL.set += impactL;
+                    break;
+                case "add":
+                case "addAll":
+                case "ListItr$add":
+                    action = "Insert";
+                    ipaA.insert += impactA;
+                    ipaL.insert += impactL;
+                    break;
+                case "remove":
+                case "removeRange":
+                case "retainAll":
+                case "removeAll":
+                case "Itr$remove":
+                    action = "Remove";
+                    ipaA.remove += impactA;
+                    ipaL.remove += impactL;
+                    break;
+                case "clear":
+                case "subList":
+                case "<init>":
+                    action = "Other";
+                    ipaA.other += impactA;
+                    ipaL.other += impactL;
             }
-
             String sb = String.valueOf(l.id) +
                     ',' +
                     l.sizeBefore +
                     ',' +
                     action +
                     ',' +
-                    index +
-                    ',' +
                     impactA +
+                    ',' +
+                    impactL +
                     '\n';
             detail.write(sb);
             if (++j % 10000 == 0) {
@@ -107,7 +107,7 @@ public class IndexDistributionExtractor {
 
 
         FileWriter summary = new FileWriter(pathToCsv+"summary.csv");
-        summary.write("id,maxlistsize,insertarray,removearray,getarray,setarray,insertlist,removelist,getlist,setlist\n");
+        summary.write("id,maxlistsize,insertarray,removearray,getarray,setarray,otherarray,insertlist,removelist,getlist,setlist,otherlist\n");
         for (int i = 0; i < impactArray.size(); i++) {
             ImpactPerAction ipaA = impactArray.get(i);
             ImpactPerAction ipaL = impactList.get(i);
@@ -124,6 +124,8 @@ public class IndexDistributionExtractor {
                     ',' +
                     ipaA.set +
                     ',' +
+                    ipaA.other +
+                    ',' +
                     ipaL.insert +
                     ',' +
                     ipaL.remove +
@@ -131,6 +133,8 @@ public class IndexDistributionExtractor {
                     ipaL.get +
                     ',' +
                     ipaL.set +
+                    ',' +
+                    ipaL.other +
                     '\n';
             summary.write(sb);
 
