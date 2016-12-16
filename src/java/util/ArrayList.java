@@ -152,7 +152,8 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            extra.put("AllocationSite", allocationSite);
+            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
             traceCall("<init>", new String[]{Integer.toString(initialCapacity)}, extra);
         }
     }
@@ -169,7 +170,8 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            extra.put("AllocationSite", allocationSite);
+            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
             traceCall("<init>", null, extra);
         }
     }
@@ -194,7 +196,8 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            extra.put("AllocationSite", allocationSite);
+            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
             traceCall("<init>", new String[]{"Collection"}, extra);
         }
     }
@@ -322,12 +325,29 @@ public class ArrayList<E> extends AbstractList<E>
     public int indexOf(Object o) {
         if (o == null) {
             for (int i = 0; i < size; i++)
-                if (elementData[i]==null)
+                if (elementData[i]==null) {
+                    if (isProfilable) {
+                        HashMap<String, String> extra = new HashMap<>();
+                        extra.put("Impact", Integer.toString(i));
+                        traceCall("indexOf", new String[]{"Object"}, extra);
+                    }
                     return i;
+                }
         } else {
             for (int i = 0; i < size; i++)
-                if (o.equals(elementData[i]))
+                if (o.equals(elementData[i])) {
+                    if (isProfilable) {
+                        HashMap<String, String> extra = new HashMap<>();
+                        extra.put("Impact", Integer.toString(i));
+                        traceCall("indexOf", new String[]{"Object"}, extra);
+                    }
                     return i;
+                }
+        }
+        if (isProfilable) {
+            HashMap<String, String> extra = new HashMap<>();
+            extra.put("Impact", Integer.toString(size()));
+            traceCall("indexOf", new String[]{"Object"}, extra);
         }
         return -1;
     }
@@ -342,12 +362,29 @@ public class ArrayList<E> extends AbstractList<E>
     public int lastIndexOf(Object o) {
         if (o == null) {
             for (int i = size-1; i >= 0; i--)
-                if (elementData[i]==null)
+                if (elementData[i]==null) {
+                    if (isProfilable) {
+                        HashMap<String, String> extra = new HashMap<>();
+                        extra.put("Impact", Integer.toString(size-i));
+                        traceCall("indexOf", new String[]{"Object"}, extra);
+                    }
                     return i;
+                }
         } else {
             for (int i = size-1; i >= 0; i--)
-                if (o.equals(elementData[i]))
+                if (o.equals(elementData[i])) {
+                    if (isProfilable) {
+                        HashMap<String, String> extra = new HashMap<>();
+                        extra.put("Impact", Integer.toString(size-i));
+                        traceCall("indexOf", new String[]{"Object"}, extra);
+                    }
                     return i;
+                }
+        }
+        if (isProfilable) {
+            HashMap<String, String> extra = new HashMap<>();
+            extra.put("Impact", Integer.toString(size()));
+            traceCall("indexOf", new String[]{"Object"}, extra);
         }
         return -1;
     }
@@ -440,6 +477,11 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public E get(int index) {
         rangeCheck(index);
+        if (isProfilable) {
+            HashMap<String, String> extra = new HashMap<>();
+            extra.put("Get", Integer.toString(index));
+            traceCall("get", new String[]{Integer.toString(index)}, extra);
+        }
 
         return elementData(index);
     }
