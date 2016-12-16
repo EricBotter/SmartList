@@ -183,7 +183,7 @@ public class ArrayList<E> extends AbstractList<E>
         // --- Profiling section
         isProfilable = checkIsProfilable();
         customInit();
-        traceCall("<init>", new String[]{"Collection"}, 0, 0, allocationSite);
+        traceCall("<init>", new String[]{"Collection"}, elementData.length, elementData.length, allocationSite);
     }
 
     /**
