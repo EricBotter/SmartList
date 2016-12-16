@@ -21,7 +21,7 @@ public class IndexDistributionExtractor {
         Scanner sc = new Scanner(new File(pathToCsv));
 
         FileWriter detail = new FileWriter(pathToCsv+"detail.csv");
-        detail.write("id,listsize,action,index,impact\n");
+        detail.write("id,listsize,action,impactA,impactL\n");
 
         HashMap<Integer, ImpactPerAction> impactArray = new HashMap<>(10000000);
         HashMap<Integer, ImpactPerAction> impactList = new HashMap<>(10000000);
