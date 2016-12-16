@@ -152,8 +152,7 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
+            extra.put( "AllocationSite", allocationSite );
             traceCall("<init>", new String[]{Integer.toString(initialCapacity)}, extra);
         }
     }
@@ -170,8 +169,7 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
+        	extra.put( "AllocationSite", allocationSite );
             traceCall("<init>", null, extra);
         }
     }
@@ -196,8 +194,7 @@ public class ArrayList<E> extends AbstractList<E>
         if( isProfilable ){
         	customInit();
         	HashMap<String, String> extra = new HashMap<>();
-            StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
-            extra.put("AllocationSite", callSite.getClassName()+"$"+callSite.getMethodName()+"$"+callSite.getLineNumber());
+        	extra.put( "AllocationSite", allocationSite );
             traceCall("<init>", new String[]{"Collection"}, extra);
         }
     }
@@ -1262,7 +1259,10 @@ public class ArrayList<E> extends AbstractList<E>
     }
     
     private String extractAllocationSite(){
-    	return ""; // TODO Implement this
+    	StackTraceElement callSite = Thread.currentThread().getStackTrace()[2];
+    	String as = callSite.getClassName() + "$"
+    			+ callSite.getMethodName() + "$" + callSite.getLineNumber();
+    	return as;
     }
     
     /** Log format, each line:
