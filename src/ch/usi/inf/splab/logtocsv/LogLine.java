@@ -24,7 +24,10 @@ class LogLine {
         sizeBefore = Integer.valueOf(elements[1]);
         impactArray = Integer.valueOf(elements[2]);
         impactList = Integer.valueOf(elements[3]);
-        allocationSite = elements[4];
+        if (elements.length == 5)
+            allocationSite = elements[4];
+        else
+            allocationSite = "";
 
         line = line.substring(line.indexOf(']') + 1);
         method = line.substring(0, line.indexOf('('));
